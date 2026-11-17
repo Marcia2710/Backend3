@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import { config } from './config/env.config.js';
 import usersRouter from './routes/user.routes.js';
 import productsRouter from './routes/product.routes.js';
+import mocksRouter from './routes/mock.routes.js';
 
 const app = express();
 
@@ -13,6 +14,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use('/api/users', usersRouter);
 app.use('/api/products', productsRouter);
+app.use('/api/mocks', mocksRouter);
 
 app.get('/api/health', (req, res) => {
   res.json({ 

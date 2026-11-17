@@ -55,3 +55,31 @@ Para desacoplar el código y respetar el principio de responsabilidad única, se
 | --- | --- |
 | `npm run dev` | Desarrollo con nodemon |
 | `npm start` | Producción |
+
+
+## 🧪 Módulo de Mocking y Carga de Datos (`/api/mocks`)
+
+El proyecto incluye un sistema de generación de datos simulados construido con `@faker-js/faker`, respetando la arquitectura por capas (**Controller → Service → Repository**) y utilizando los diccionarios de constantes inmutables (`ROLES`, `ORDER_STATUS`, `ORDER_PRIORITY`, `DELIVERY_STATUS`).
+
+### Datos que se pueden generar
+* **Usuarios y Repartidores:** Nombres, correos y contraseñas simuladas con roles coherentes (`user` o `repartidor`).
+* **Productos:** Artículos con código único, precio, stock y estado automático (`available` u `out_of_stock`).
+* **Pedidos:** Órdenes vinculadas a clientes y productos válidos, con cálculo de totales, estados (`pending`, `confirmed`, `in_transit`, `delivered`, `cancelled`) y prioridades (`low`, `medium`, `high`, `urgent`).
+* **Entregas:** Envíos asociados a pedidos existentes con código de seguimiento y asignación coherente de repartidores según el estado del pedido.
+
+### Endpoints de Mocking
+
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| GET | `/api/mocks/users?qty=5` | Genera usuarios simulados (clientes y repartidores) sin guardar en BD |
+| GET | `/api/mocks/drivers?qty=5` | Genera exclusivamente repartidores simulados sin guardar en BD |
+| GET | `/api/mocks/orders?qty=5` | Genera pedidos simulados asociados a clientes y productos |
+| GET | `/api/mocks/deliveries?qty=5` | Genera entregas simuladas vinculadas a pedidos y repartidores |
+| POST | `/api/mocks/seed?qty=10` | Genera e inserta lotes de usuarios, productos, pedidos y entregas en MongoDB |
+
+### Cómo probar la carga de datos de prueba
+1. Con el servidor corriendo (`npm run dev`), ejecuta una petición `POST` a `/api/mocks/seed` indicando la cantidad deseada en el parámetro `qty`:
+   ```bash
+   curl -X POST "http://localhost:8080/api/mocks/seed?qty=10"
+   ```
+2. Verifica que los registros fueron persistidos consultando `GET http://localhost:8080/api/users` o `GET http://localhost:8080/api/products`.
