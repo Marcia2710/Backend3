@@ -83,3 +83,37 @@ El proyecto incluye un sistema de generación de datos simulados construido con 
    curl -X POST "http://localhost:8080/api/mocks/seed?qty=10"
    ```
 2. Verifica que los registros fueron persistidos consultando `GET http://localhost:8080/api/users` o `GET http://localhost:8080/api/products`.
+
+
+
+
+## 🛡️ Manejo Centralizado de Errores
+
+La API utiliza una capa común para gestionar todas las fallas de forma consistente, evitando respuestas de error dispersas en rutas o controladores.
+
+### Arquitectura de Errores
+* **Diccionario de Errores (`src/errors/errorDictionary.js`):** Define los códigos internos, mensajes descriptivos y códigos de estado HTTP (`400`, `403`, `404`, `500`) para cada caso del dominio.
+* **Clase `CustomError` (`src/errors/CustomError.js`):** Permite que la capa de *Services* lance excepciones tipadas del dominio sin conocer detalles de HTTP.
+* **Middleware Global (`src/middlewares/errorHandler.js`):** Captura cualquier error propagado con `next(error)` (incluyendo errores de validación o formato de ID de Mongoose) y devuelve una respuesta JSON uniforme.
+
+### Estructura de Respuesta de Error
+Todos los errores responden con el siguiente formato estándar:
+
+```json
+{
+  "status": "error",
+  "code": "INVALID_MOCK_QTY",
+  "message": "La cantidad '-5' es inválida. Debe ser un número entero entre 1 y 1000."
+}
+```
+
+### Cómo probar casos inválidos
+Con el servidor en ejecución (`npm run dev`), puedes verificar el comportamiento ante errores probando los siguientes endpoints:
+
+1. **Cantidad inválida en Mocks (negativo, cero o texto):**
+   * `GET http://localhost:8080/api/mocks/users?qty=-5` → Devuelve HTTP `400` con código `INVALID_MOCK_QTY`.
+   * `POST http://localhost:8080/api/mocks/seed?qty=abc` → Devuelve HTTP `400` con código `INVALID_MOCK_QTY`.
+2. **Formato de ID inválido en MongoDB:**
+   * `GET http://localhost:8080/api/products/12345` → Devuelve HTTP `400` con código `INVALID_ID_FORMAT`.
+3. **Recurso inexistente:**
+   * `GET http://localhost:8080/api/users/64b000000000000000000000` → Devuelve HTTP `404` con código `USER_NOT_FOUND`.

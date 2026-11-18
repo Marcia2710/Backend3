@@ -5,6 +5,7 @@ import { config } from './config/env.config.js';
 import usersRouter from './routes/user.routes.js';
 import productsRouter from './routes/product.routes.js';
 import mocksRouter from './routes/mock.routes.js';
+import { errorHandler } from './middlewares/errorHandler.js'; // <-- 1. Importar middleware
 
 const app = express();
 
@@ -25,8 +26,15 @@ app.get('/api/health', (req, res) => {
 });
 
 app.use((req, res) => {
-  res.status(404).send('Ruta no encontrada');
+  res.status(404).json({
+    status: 'error',
+    code: 'ROUTE_NOT_FOUND',
+    message: 'Ruta no encontrada'
+  });
 });
+
+// 2. Registrar el middleware global de errores SIEMPRE después de las rutas
+app.use(errorHandler);
 
 mongoose.connect(config.mongoUri)
   .then(() => {

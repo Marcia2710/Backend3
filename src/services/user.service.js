@@ -1,5 +1,7 @@
 import { UserRepository } from '../repositories/user.repository.js';
 import { ROLES } from '../constants/index.js';
+import { CustomError } from '../errors/CustomError.js';
+import { ERROR_DICTIONARY } from '../errors/errorDictionary.js';
 
 const userRepository = new UserRepository();
 
@@ -10,7 +12,9 @@ export class UserService {
 
   async getUserById(id) {
     const user = await userRepository.getById(id);
-    if (!user) throw new Error('Usuario no encontrado');
+    if (!user) {
+      throw new CustomError(ERROR_DICTIONARY.USER_NOT_FOUND);
+    }
     return user;
   }
 
@@ -18,19 +22,19 @@ export class UserService {
     const { firstName, lastName, email, password, role } = userData;
 
     if (!firstName || !lastName || !email || !password) {
-      throw new Error('Faltan campos obligatorios');
+      throw new CustomError(
+        ERROR_DICTIONARY.VALIDATION_ERROR,
+        'Los campos firstName, lastName, email y password son obligatorios.'
+      );
     }
 
     const existing = await userRepository.getByEmail(email);
     if (existing) {
-      throw new Error('El email ya está registrado');
+      throw new CustomError(ERROR_DICTIONARY.EMAIL_ALREADY_EXISTS);
     }
 
-    // Regla de negocio: usamos la constante ROLES en lugar de strings sueltos
     if (role === ROLES.ADMIN) {
-      const forbiddenError = new Error('No se puede crear un admin desde este endpoint');
-      forbiddenError.statusCode = 403;
-      throw forbiddenError;
+      throw new CustomError(ERROR_DICTIONARY.FORBIDDEN_ADMIN_CREATION);
     }
 
     return await userRepository.create({
@@ -44,14 +48,17 @@ export class UserService {
 
   async updateUser(id, updateData) {
     const updatedUser = await userRepository.update(id, updateData);
-    if (!updatedUser) throw new Error('Usuario no encontrado');
+    if (!updatedUser) {
+      throw new CustomError(ERROR_DICTIONARY.USER_NOT_FOUND);
+    }
     return updatedUser;
   }
 
   async deleteUser(id) {
     const deletedUser = await userRepository.delete(id);
-    if (!deletedUser) throw new Error('Usuario no encontrado');
+    if (!deletedUser) {
+      throw new CustomError(ERROR_DICTIONARY.USER_NOT_FOUND);
+    }
     return deletedUser;
   }
 }
-

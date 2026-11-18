@@ -8,12 +8,28 @@ import {
   ORDER_PRIORITY,
   DELIVERY_STATUS
 } from '../constants/index.js';
+import { CustomError } from '../errors/CustomError.js';
+import { ERROR_DICTIONARY } from '../errors/errorDictionary.js';
 
 const mockRepository = new MockRepository();
 
 export class MockService {
-  // Genera usuarios (clientes y repartidores) en memoria sin guardar
-  generateUsers(qty = 5, specificRole = null) {
+  // Validación centralizada de cantidad para todos los endpoints de mocks
+  #validateQty(rawQty, defaultQty = 5) {
+    if (rawQty === undefined) return defaultQty;
+
+    const parsed = Number(rawQty);
+    if (!Number.isInteger(parsed) || parsed <= 0 || parsed > 1000) {
+      throw new CustomError(
+        ERROR_DICTIONARY.INVALID_MOCK_QTY,
+        `La cantidad '${rawQty}' es inválida. Debe ser un número entero entre 1 y 1000.`
+      );
+    }
+    return parsed;
+  }
+
+  generateUsers(rawQty = 5, specificRole = null) {
+    const qty = this.#validateQty(rawQty, 5);
     const users = [];
     const availableRoles = [ROLES.USER, ROLES.DRIVER];
 
@@ -35,9 +51,10 @@ export class MockService {
     return users;
   }
 
-  // Genera productos simulados en memoria
-  generateProducts(qty = 5) {
+  generateProducts(rawQty = 5) {
+    const qty = this.#validateQty(rawQty, 5);
     const products = [];
+
     for (let i = 0; i < qty; i++) {
       const stock = faker.number.int({ min: 0, max: 100 });
       products.push({
@@ -54,8 +71,8 @@ export class MockService {
     return products;
   }
 
-  // Genera pedidos coherentes asociados a clientes y productos
-  generateOrders(qty = 5, usersList = [], productsList = []) {
+  generateOrders(rawQty = 5, usersList = [], productsList = []) {
+    const qty = this.#validateQty(rawQty, 5);
     const clients = usersList.filter((u) => u.role === ROLES.USER);
     const validClients = clients.length > 0 ? clients : this.generateUsers(3, ROLES.USER);
     const validProducts = productsList.length > 0 ? productsList : this.generateProducts(5);
@@ -83,14 +100,12 @@ export class MockService {
     return orders;
   }
 
-  // Genera entregas coherentes asociadas a pedidos y repartidores
   generateDeliveries(ordersList = [], usersList = []) {
     const drivers = usersList.filter((u) => u.role === ROLES.DRIVER);
     const validDrivers = drivers.length > 0 ? drivers : this.generateUsers(2, ROLES.DRIVER);
     const statuses = Object.values(DELIVERY_STATUS);
 
     return ordersList.map((order) => {
-      // Si el pedido está pendiente o cancelado, puede no tener repartidor asignado aún
       const needsDriver = ![ORDER_STATUS.PENDING, ORDER_STATUS.CANCELLED].includes(order.status);
       const assignedDriver = needsDriver ? faker.helpers.arrayElement(validDrivers)._id : null;
 
@@ -105,23 +120,31 @@ export class MockService {
     });
   }
 
-  // Inserta datos simulados en MongoDB respetando todas las relaciones
-  async seedDatabase(qty = 10) {
+  async seedDatabase(rawQty = 10) {
+    const qty = this.#validateQty(rawQty, 10);
+
     const users = this.generateUsers(qty);
     const products = this.generateProducts(qty);
     const orders = this.generateOrders(qty, users, products);
     const deliveries = this.generateDeliveries(orders, users);
 
-    const insertedUsers = await mockRepository.insertUsers(users);
-    const insertedProducts = await mockRepository.insertProducts(products);
-    const insertedOrders = await mockRepository.insertOrders(orders);
-    const insertedDeliveries = await mockRepository.insertDeliveries(deliveries);
+    try {
+      const insertedUsers = await mockRepository.insertUsers(users);
+      const insertedProducts = await mockRepository.insertProducts(products);
+      const insertedOrders = await mockRepository.insertOrders(orders);
+      const insertedDeliveries = await mockRepository.insertDeliveries(deliveries);
 
-    return {
-      usuarios: insertedUsers.length,
-      productos: insertedProducts.length,
-      pedidos: insertedOrders.length,
-      entregas: insertedDeliveries.length
-    };
+      return {
+        usuarios: insertedUsers.length,
+        productos: insertedProducts.length,
+        pedidos: insertedOrders.length,
+        entregas: insertedDeliveries.length
+      };
+    } catch (dbError) {
+      throw new CustomError(
+        ERROR_DICTIONARY.MOCK_SEED_ERROR,
+        `Falla al guardar los datos simulados en MongoDB: ${dbError.message}`
+      );
+    }
   }
 }

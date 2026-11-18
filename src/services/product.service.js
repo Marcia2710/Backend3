@@ -1,6 +1,8 @@
 import { ProductRepository } from '../repositories/product.repository.js';
 import { PRODUCT_STATUS } from '../constants/index.js';
 import { config } from '../config/env.config.js';
+import { CustomError } from '../errors/CustomError.js';
+import { ERROR_DICTIONARY } from '../errors/errorDictionary.js';
 
 const productRepository = new ProductRepository();
 
@@ -20,15 +22,18 @@ export class ProductService {
 
   async getProductById(id) {
     const product = await productRepository.getById(id);
-    if (!product) throw new Error('Producto no encontrado');
+    if (!product) {
+      throw new CustomError(ERROR_DICTIONARY.PRODUCT_NOT_FOUND);
+    }
     return product;
   }
 
   async calculateShippingCost(id) {
     const product = await this.getProductById(id);
     
-    // Usamos tu archivo de configuración en lugar de hardcodear
-    if (!config.shippingApiKey) throw new Error('Falta API key');
+    if (!config.shippingApiKey) {
+      throw new CustomError(ERROR_DICTIONARY.MISSING_API_KEY);
+    }
     const isProduction = config.env === 'production';
 
     const shippingCost = isProduction ? 50 + product.price * 0.01 : 10;
@@ -43,15 +48,18 @@ export class ProductService {
     const { title, code, price } = productData;
 
     if (!title || !code || price === undefined) {
-      throw new Error('Faltan campos obligatorios');
+      throw new CustomError(
+        ERROR_DICTIONARY.VALIDATION_ERROR, 
+        'Los campos title, code y price son obligatorios.'
+      );
     }
     if (price < 0) {
-      throw new Error('Precio inválido');
+      throw new CustomError(ERROR_DICTIONARY.INVALID_PRODUCT_PRICE);
     }
 
     const existing = await productRepository.getByCode(code);
     if (existing) {
-      throw new Error('El código de producto ya existe');
+      throw new CustomError(ERROR_DICTIONARY.DUPLICATE_PRODUCT_CODE);
     }
 
     const stock = productData.stock || 0;
@@ -75,13 +83,17 @@ export class ProductService {
     }
 
     const product = await productRepository.update(id, updateData);
-    if (!product) throw new Error('Producto no encontrado');
+    if (!product) {
+      throw new CustomError(ERROR_DICTIONARY.PRODUCT_NOT_FOUND);
+    }
     return product;
   }
 
   async deleteProduct(id) {
     const product = await productRepository.delete(id);
-    if (!product) throw new Error('Producto no encontrado');
+    if (!product) {
+      throw new CustomError(ERROR_DICTIONARY.PRODUCT_NOT_FOUND);
+    }
     return product;
   }
 }
