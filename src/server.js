@@ -4,8 +4,11 @@ import mongoose from 'mongoose';
 import { config } from './config/env.config.js';
 import { logger } from './config/logger.config.js';
 import { httpLogger } from './middlewares/httpLogger.js';
+import { setupSwagger } from './config/swagger.config.js';
 import usersRouter from './routes/user.routes.js';
 import productsRouter from './routes/product.routes.js';
+import ordersRouter from './routes/order.routes.js';
+import deliveriesRouter from './routes/delivery.routes.js';
 import mocksRouter from './routes/mock.routes.js';
 import loggerRouter from './routes/logger.routes.js';
 import { errorHandler } from './middlewares/errorHandler.js';
@@ -16,11 +19,13 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Middleware para registrar peticiones HTTP automáticamente
 app.use(httpLogger);
+setupSwagger(app);
 
 app.use('/api/users', usersRouter);
 app.use('/api/products', productsRouter);
+app.use('/api/orders', ordersRouter);
+app.use('/api/deliveries', deliveriesRouter);
 app.use('/api/mocks', mocksRouter);
 app.use('/api/logger-test', loggerRouter);
 
@@ -41,7 +46,6 @@ app.use((req, res) => {
   });
 });
 
-// Middleware global de errores
 app.use(errorHandler);
 
 mongoose.connect(config.mongoUri)
@@ -49,6 +53,7 @@ mongoose.connect(config.mongoUri)
     logger.info('Conexión a MongoDB establecida exitosamente');
     app.listen(config.port, () => {
       logger.info(`Servidor ShipNow escuchando en el puerto ${config.port} (Modo: ${config.env})`);
+      logger.info(`Documentación Swagger disponible en http://localhost:${config.port}/api/docs`);
     });
   })
   .catch((error) => {

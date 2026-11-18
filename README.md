@@ -148,3 +148,21 @@ Con el servidor en ejecución (`npm run dev`), realiza una petición `GET` al en
 * `GET http://localhost:8080/api/logger-test`
 
 Esto disparará un mensaje en cada uno de los 6 niveles configurados, permitiéndote verificar su salida inmediata en la consola y su persistencia en los archivos dentro de `logs/`.
+
+
+## 📖 Documentación Interactiva con Swagger (`/api/docs`)
+
+La API cuenta con documentación técnica generada con **Swagger / OpenAPI 3.0** (`src/config/swagger.config.js`), separada de la lógica de rutas y accesible de forma interactiva.
+
+### Cómo acceder a la documentación
+1. Inicia el servidor en modo desarrollo:
+   ```bash
+   npm run dev
+   ```
+2. Abre en tu navegador web:
+   * `http://localhost:8080/api/docs`
+
+### Módulos y Esquemas Documentados
+* **Tags agrupados por dominio:** `Users`, `Products`, `Orders`, `Deliveries`, `Mocks` y `Logger` (aclarando que `/api/logger-test` es una herramienta interna de diagnóstico).
+* **Schemas reutilizables:** `User`, `Product`, `Order`, `OrderItem`, `Delivery`, `SuccessResponse` y `ErrorResponse`.
+* **Aclaración para probar endpoints:** Desde la interfaz de Swagger puedes hacer clic en **"Try it out" → "Execute"** en cualquier ruta. Para probar endpoints de detalle o cambio de estado (`GET /api/users/{id}`, `PATCH /api/orders/{id}/status`, `PATCH /api/deliveries/{id}/status`), puedes generar datos previamente ejecutando `POST /api/mocks/seed` y copiar cualquiera de los `_id` devueltos por los endpoints de listado (`GET`).

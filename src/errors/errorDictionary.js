@@ -60,5 +60,23 @@ export const ERROR_DICTIONARY = Object.freeze({
     code: 'MOCK_SEED_ERROR',
     message: 'Ocurrió un error al intentar insertar los datos simulados en la base de datos.',
     statusCode: 500
+  },
+
+    // Errores de Dominio: Pedidos y Entregas
+  ORDER_NOT_FOUND: {
+    code: 'ORDER_NOT_FOUND',
+    message: 'El pedido solicitado no fue encontrado.',
+    statusCode: 404
+  },
+  DELIVERY_NOT_FOUND: {
+    code: 'DELIVERY_NOT_FOUND',
+    message: 'La entrega solicitada no fue encontrada.',
+    statusCode: 404
+  },
+  INVALID_STATUS_TRANSITION: {
+    code: 'INVALID_STATUS_TRANSITION',
+    message: 'El estado proporcionado no es válido para esta entidad.',
+    statusCode: 400
   }
+
 });
