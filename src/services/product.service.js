@@ -3,12 +3,13 @@ import { PRODUCT_STATUS } from '../constants/index.js';
 import { config } from '../config/env.config.js';
 import { CustomError } from '../errors/CustomError.js';
 import { ERROR_DICTIONARY } from '../errors/errorDictionary.js';
+import { logger } from '../config/logger.config.js';
 
 const productRepository = new ProductRepository();
 
 const emailProvider = {
   send: async (message) => {
-    console.log('[EMAIL] ' + message);
+    logger.debug(`[EMAIL SIMULADO] ${message}`);
   }
 };
 
@@ -69,6 +70,9 @@ export class ProductService {
       status: stock > 0 ? PRODUCT_STATUS.AVAILABLE : PRODUCT_STATUS.OUT_OF_STOCK
     });
 
+    // Aquí queda ubicado el registro del evento con Winston
+    logger.info(`Producto creado: ${newProduct.title} (Código: ${newProduct.code})`);
+
     await emailProvider.send('Producto creado: ' + newProduct.title);
     return newProduct;
   }
@@ -86,6 +90,8 @@ export class ProductService {
     if (!product) {
       throw new CustomError(ERROR_DICTIONARY.PRODUCT_NOT_FOUND);
     }
+
+    logger.info(`Producto actualizado: ${product.title} (ID: ${product._id})`);
     return product;
   }
 
@@ -94,6 +100,8 @@ export class ProductService {
     if (!product) {
       throw new CustomError(ERROR_DICTIONARY.PRODUCT_NOT_FOUND);
     }
+
+    logger.warning(`Producto eliminado: ${product.title} (ID: ${product._id})`);
     return product;
   }
 }

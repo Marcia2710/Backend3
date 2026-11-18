@@ -117,3 +117,34 @@ Con el servidor en ejecución (`npm run dev`), puedes verificar el comportamient
    * `GET http://localhost:8080/api/products/12345` → Devuelve HTTP `400` con código `INVALID_ID_FORMAT`.
 3. **Recurso inexistente:**
    * `GET http://localhost:8080/api/users/64b000000000000000000000` → Devuelve HTTP `404` con código `USER_NOT_FOUND`.
+
+
+## 📊 Sistema de Logging y Monitoreo (Winston)
+
+La aplicación reemplaza los mensajes sueltos en consola por un sistema de logging centralizado implementado con **Winston** (`src/config/logger.config.js`) y rotación diaria mediante `winston-daily-rotate-file`.
+
+### Niveles de Log Configurados
+De mayor a menor criticidad:
+1. **`fatal` (0):** Fallas críticas del sistema (ej. error inicial al conectar a MongoDB).
+2. **`error` (1):** Errores inesperados del servidor o fallas al persistir datos.
+3. **`warning` (2):** Advertencias controladas del negocio, rutas inexistentes o validaciones fallidas (`CustomError` 4xx).
+4. **`info` (3):** Eventos relevantes del ciclo de vida (arranque del servidor, conexión a base de datos, creación de productos o carga de mocks).
+5. **`http` (4):** Registro automático de todas las peticiones HTTP entrantes, su código de estado y tiempo de respuesta.
+6. **`debug` (5):** Detalles técnicos internos para depuración en desarrollo.
+
+### Comportamiento según el Entorno (`NODE_ENV`)
+* **Desarrollo (`development`):** Registra y muestra por consola todos los niveles desde `debug` hasta `fatal`.
+* **Producción (`production`):** Filtra los detalles técnicos y registra únicamente eventos relevantes desde `info` hasta `fatal`.
+
+### Persistencia, Rotación y Archivos Ignorados
+* **Ubicación:** Los registros se guardan automáticamente en la carpeta `logs/` en la raíz del proyecto.
+* **Rotación:** Los archivos rotan diariamente (`error-YYYY-MM-DD.log` y `combined-YYYY-MM-DD.log`), con un límite de `10MB` por archivo y retención de `14 días` para evitar crecimiento descontrolado.
+* **Archivo de errores:** `logs/error-YYYY-MM-DD.log` almacena exclusivamente los niveles `error` y `fatal`.
+* **Control de versiones (`.gitignore`):** La carpeta `logs/` (al igual que `node_modules` y `.env`) está ignorada en Git para evitar subir registros locales al repositorio.
+
+### Cómo probar el Endpoint del Logger
+Con el servidor en ejecución (`npm run dev`), realiza una petición `GET` al endpoint de diagnóstico:
+
+* `GET http://localhost:8080/api/logger-test`
+
+Esto disparará un mensaje en cada uno de los 6 niveles configurados, permitiéndote verificar su salida inmediata en la consola y su persistencia en los archivos dentro de `logs/`.

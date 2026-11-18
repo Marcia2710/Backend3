@@ -10,11 +10,11 @@ import {
 } from '../constants/index.js';
 import { CustomError } from '../errors/CustomError.js';
 import { ERROR_DICTIONARY } from '../errors/errorDictionary.js';
+import { logger } from '../config/logger.config.js';
 
 const mockRepository = new MockRepository();
 
 export class MockService {
-  // Validación centralizada de cantidad para todos los endpoints de mocks
   #validateQty(rawQty, defaultQty = 5) {
     if (rawQty === undefined) return defaultQty;
 
@@ -30,6 +30,7 @@ export class MockService {
 
   generateUsers(rawQty = 5, specificRole = null) {
     const qty = this.#validateQty(rawQty, 5);
+    logger.debug(`Generando ${qty} usuarios simulados en memoria`);
     const users = [];
     const availableRoles = [ROLES.USER, ROLES.DRIVER];
 
@@ -53,6 +54,7 @@ export class MockService {
 
   generateProducts(rawQty = 5) {
     const qty = this.#validateQty(rawQty, 5);
+    logger.debug(`Generando ${qty} productos simulados en memoria`);
     const products = [];
 
     for (let i = 0; i < qty; i++) {
@@ -73,6 +75,7 @@ export class MockService {
 
   generateOrders(rawQty = 5, usersList = [], productsList = []) {
     const qty = this.#validateQty(rawQty, 5);
+    logger.debug(`Generando ${qty} pedidos simulados en memoria`);
     const clients = usersList.filter((u) => u.role === ROLES.USER);
     const validClients = clients.length > 0 ? clients : this.generateUsers(3, ROLES.USER);
     const validProducts = productsList.length > 0 ? productsList : this.generateProducts(5);
@@ -101,6 +104,7 @@ export class MockService {
   }
 
   generateDeliveries(ordersList = [], usersList = []) {
+    logger.debug(`Generando ${ordersList.length} entregas simuladas en memoria`);
     const drivers = usersList.filter((u) => u.role === ROLES.DRIVER);
     const validDrivers = drivers.length > 0 ? drivers : this.generateUsers(2, ROLES.DRIVER);
     const statuses = Object.values(DELIVERY_STATUS);
@@ -122,6 +126,7 @@ export class MockService {
 
   async seedDatabase(rawQty = 10) {
     const qty = this.#validateQty(rawQty, 10);
+    logger.info(`Iniciando generación y carga de ${qty} registros de prueba en MongoDB...`);
 
     const users = this.generateUsers(qty);
     const products = this.generateProducts(qty);
@@ -133,6 +138,8 @@ export class MockService {
       const insertedProducts = await mockRepository.insertProducts(products);
       const insertedOrders = await mockRepository.insertOrders(orders);
       const insertedDeliveries = await mockRepository.insertDeliveries(deliveries);
+
+      logger.info(`Carga de datos mock finalizada: ${qty} usuarios, productos, pedidos y entregas insertados.`);
 
       return {
         usuarios: insertedUsers.length,

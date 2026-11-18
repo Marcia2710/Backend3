@@ -2,10 +2,13 @@ import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import { config } from './config/env.config.js';
+import { logger } from './config/logger.config.js';
+import { httpLogger } from './middlewares/httpLogger.js';
 import usersRouter from './routes/user.routes.js';
 import productsRouter from './routes/product.routes.js';
 import mocksRouter from './routes/mock.routes.js';
-import { errorHandler } from './middlewares/errorHandler.js'; // <-- 1. Importar middleware
+import loggerRouter from './routes/logger.routes.js';
+import { errorHandler } from './middlewares/errorHandler.js';
 
 const app = express();
 
@@ -13,9 +16,13 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Middleware para registrar peticiones HTTP automáticamente
+app.use(httpLogger);
+
 app.use('/api/users', usersRouter);
 app.use('/api/products', productsRouter);
 app.use('/api/mocks', mocksRouter);
+app.use('/api/logger-test', loggerRouter);
 
 app.get('/api/health', (req, res) => {
   res.json({ 
@@ -26,6 +33,7 @@ app.get('/api/health', (req, res) => {
 });
 
 app.use((req, res) => {
+  logger.warning(`Ruta inexistente solicitada: ${req.method} ${req.originalUrl}`);
   res.status(404).json({
     status: 'error',
     code: 'ROUTE_NOT_FOUND',
@@ -33,17 +41,17 @@ app.use((req, res) => {
   });
 });
 
-// 2. Registrar el middleware global de errores SIEMPRE después de las rutas
+// Middleware global de errores
 app.use(errorHandler);
 
 mongoose.connect(config.mongoUri)
   .then(() => {
-    console.log('🌱 Conectado a MongoDB exitosamente');
+    logger.info('Conexión a MongoDB establecida exitosamente');
     app.listen(config.port, () => {
-      console.log(`🚀 Servidor corriendo en puerto ${config.port} (Modo: ${config.env})`);
+      logger.info(`Servidor ShipNow escuchando en el puerto ${config.port} (Modo: ${config.env})`);
     });
   })
   .catch((error) => {
-    console.error('❌ Error de conexión a MongoDB:', error);
+    logger.fatal(`Falla crítica al conectar a MongoDB: ${error.message}`);
     process.exit(1);
   });
