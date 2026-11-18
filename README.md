@@ -166,3 +166,31 @@ La API cuenta con documentación técnica generada con **Swagger / OpenAPI 3.0**
 * **Tags agrupados por dominio:** `Users`, `Products`, `Orders`, `Deliveries`, `Mocks` y `Logger` (aclarando que `/api/logger-test` es una herramienta interna de diagnóstico).
 * **Schemas reutilizables:** `User`, `Product`, `Order`, `OrderItem`, `Delivery`, `SuccessResponse` y `ErrorResponse`.
 * **Aclaración para probar endpoints:** Desde la interfaz de Swagger puedes hacer clic en **"Try it out" → "Execute"** en cualquier ruta. Para probar endpoints de detalle o cambio de estado (`GET /api/users/{id}`, `PATCH /api/orders/{id}/status`, `PATCH /api/deliveries/{id}/status`), puedes generar datos previamente ejecutando `POST /api/mocks/seed` y copiar cualquiera de los `_id` devueltos por los endpoints de listado (`GET`).
+
+
+
+## 🧪 Testing Funcional Automatizado
+
+El proyecto cuenta con una suite de pruebas funcionales automatizadas para validar los flujos exitosos y el manejo centralizado de errores en los endpoints principales.
+
+### Herramientas Utilizadas
+* **Mocha:** Framework de ejecución y organización de suites de prueba.
+* **Chai:** Librería de aserciones para validar códigos de estado HTTP, estructuras JSON y propiedades de respuesta.
+* **Supertest:** Cliente HTTP para realizar peticiones contra la aplicación Express (`src/app.js`) sin necesidad de abrir un puerto manualmente.
+
+### Cómo Ejecutar los Tests
+Con las dependencias instaladas, ejecuta en la terminal:
+
+```bash
+npm test
+```
+
+### Módulos Cubiertos
+* **Usuarios (`/api/users`):** Listado exitoso, error `400` por datos incompletos y `404` ante usuario inexistente.
+* **Pedidos (`/api/orders`):** Creación con datos válidos, listado, consulta por ID y validación de transición de estados (`PATCH /api/orders/:id/status`).
+* **Mocks (`/api/mocks`):** Generación de usuarios en memoria, inserción masiva en BD (`/seed`) y validación de cantidades inválidas (`INVALID_MOCK_QTY`).
+* **Sistema (`/api/logger-test`, `/api/docs`):** Validación del endpoint de diagnóstico de Winston, acceso a la interfaz de Swagger UI y respuesta `404` ante rutas inexistentes.
+
+### Base de Datos y Variables de Entorno de Testing
+* **Base de datos separada:** Los tests utilizan una base de datos exclusiva para pruebas (ej. `shipnow_test`) con limpieza automática mediante hooks (`beforeEach` / `after`) para evitar modificar datos de desarrollo y garantizar que la suite sea repetible.
+* **Variables necesarias (`.env.test`):** Crea un archivo `.env.test` en la raíz del proyecto (ignorado en Git) con las mismas claves que `.env.example`, estableciendo `NODE_ENV=test` y apuntando `MONGODB_URI` a la base de datos de pruebas.

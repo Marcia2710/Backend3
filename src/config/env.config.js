@@ -1,5 +1,7 @@
 import dotenv from 'dotenv';
-dotenv.config();
+
+const envPath = process.env.NODE_ENV === 'test' ? '.env.test' : '.env';
+dotenv.config({ path: envPath });
 
 const requiredEnv = ['PORT', 'MONGODB_URI', 'NODE_ENV', 'SHIPPING_API_KEY', 'JWT_SECRET'];
 
