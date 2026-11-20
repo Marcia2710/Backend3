@@ -8,9 +8,12 @@ import { logger } from '../config/logger.config.js';
 const userRepository = new UserRepository();
 
 export class UserService {
-  async getAllUsers() {
-    return await userRepository.getAll();
-  }
+  async getAllUsers(filters = {}) {
+  const page = Math.max(1, Number(filters.page) || 1);
+  const limit = Math.min(50, Math.max(1, Number(filters.limit) || 10));
+  return await userRepository.getAll({ page, limit, role: filters.role });
+}
+
 
   async getUserById(id) {
     const user = await userRepository.getById(id);

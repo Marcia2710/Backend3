@@ -5,7 +5,7 @@ const orderService = new OrderService();
 export class OrderController {
   async getAll(req, res, next) {
     try {
-      const orders = await orderService.getAllOrders();
+      const orders = await orderService.getAllOrders(req.query);
       return res.status(200).json(orders);
     } catch (error) { next(error); }
   }

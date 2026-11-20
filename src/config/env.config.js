@@ -17,5 +17,8 @@ export const config = {
   mongoUri: process.env.MONGODB_URI,
   env: process.env.NODE_ENV,
   shippingApiKey: process.env.SHIPPING_API_KEY,
-  jwtSecret: process.env.JWT_SECRET
+  jwtSecret: process.env.JWT_SECRET,
+  logLevel: process.env.LOG_LEVEL || (process.env.NODE_ENV === 'production' ? 'info' : 'debug'),
+  shippingServiceUrl: process.env.SHIPPING_SERVICE_URL || 'https://shipping-external.local'
 };
+

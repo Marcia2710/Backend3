@@ -15,27 +15,44 @@ import { errorHandler } from './middlewares/errorHandler.js';
 const app = express();
 
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
 if (config.env !== 'test') {
   app.use(httpLogger);
 }
 
+// Documentación Swagger accesible en todos los entornos
 setupSwagger(app);
 
 app.use('/api/users', usersRouter);
 app.use('/api/products', productsRouter);
 app.use('/api/orders', ordersRouter);
 app.use('/api/deliveries', deliveriesRouter);
-app.use('/api/mocks', mocksRouter);
-app.use('/api/logger-test', loggerRouter);
 
+// Criterio de producción: restringir endpoints internos de generación de mocks y diagnóstico de logs
+const restrictInProduction = (req, res, next) => {
+  if (config.env === 'production') {
+    logger.warning(`Intento de acceso a endpoint interno en producción: ${req.originalUrl}`);
+    return res.status(403).json({
+      status: 'error',
+      code: 'FORBIDDEN_IN_PRODUCTION',
+      message: 'Este endpoint interno está deshabilitado en el entorno de producción.'
+    });
+  }
+  next();
+};
+
+app.use('/api/mocks', restrictInProduction, mocksRouter);
+app.use('/api/logger-test', restrictInProduction, loggerRouter);
+
+// Health Check sin exposición de datos sensibles
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
-    timestamp: new Date().toISOString(), 
-    secret: config.jwtSecret 
+  res.status(200).json({
+    status: 'ok',
+    environment: config.env,
+    uptime: `${Math.floor(process.uptime())}s`,
+    timestamp: new Date().toISOString()
   });
 });
 
@@ -51,3 +68,4 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 export default app;
+

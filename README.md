@@ -119,7 +119,7 @@ Con el servidor en ejecución (`npm run dev`), puedes verificar el comportamient
    * `GET http://localhost:8080/api/users/64b000000000000000000000` → Devuelve HTTP `404` con código `USER_NOT_FOUND`.
 
 
-## 📊 Sistema de Logging y Monitoreo (Winston)
+## Sistema de Logging y Monitoreo (Winston)
 
 La aplicación reemplaza los mensajes sueltos en consola por un sistema de logging centralizado implementado con **Winston** (`src/config/logger.config.js`) y rotación diaria mediante `winston-daily-rotate-file`.
 
@@ -199,7 +199,7 @@ npm test
 
 
 
-## 📁 Carga de Archivos y Comprobantes (Multer)
+## Carga de Archivos y Comprobantes (Multer)
 
 La API gestiona la carga de archivos mediante **Multer** (`src/config/multer.config.js`), almacenando los archivos organizados por categoría en `uploads/` (carpeta ignorada en Git) y persistiendo únicamente sus **metadatos** en MongoDB (`originalName`, `fileName`, `path`, `mimetype`, `size`, `documentType`, `uploadedAt`).
 
@@ -222,3 +222,35 @@ La API gestiona la carga de archivos mediante **Multer** (`src/config/multer.con
   * **Campo adicional:** `documentType` (`dni`, `licencia` o `comprobante_domicilio`).
 * **`POST /api/deliveries/:id/receipt`:** Asocia un comprobante (`comprobante_entrega`) a una entrega existente.
   * **Campo de archivo:** `receipt` (JPG, PNG, WEBP o PDF — Máximo `5MB`).
+
+
+##8
+## 🚀 Producción, Escalabilidad y Docker
+
+El proyecto está optimizado y preparado para desplegarse en entornos de producción mediante contenedores Docker.
+
+### Optimizaciones de Performance
+* **Paginación y Filtros:** Los endpoints de listado (`GET /api/users`, `GET /api/orders`, `GET /api/deliveries`) soportan parámetros `page` (por defecto `1`), `limit` (por defecto `10`, máximo `50`) y filtros por estado o rol, utilizando consultas `.lean()` para reducir el uso de memoria.
+* **Control de Payloads y Archivos:** El cuerpo de peticiones JSON está limitado a `1mb` y la carga de archivos con Multer restringe formatos (`JPG`, `PNG`, `WEBP`, `PDF`) y tamaño máximo (`5MB`).
+
+### Configuración por Entorno y Health Check
+* **Variables de Entorno requeridas (`.env`):** `PORT`, `MONGODB_URI`, `NODE_ENV`, `JWT_SECRET`, `SHIPPING_API_KEY`, `LOG_LEVEL` y `SHIPPING_SERVICE_URL`. Si falta alguna variable crítica, la aplicación detiene el arranque con un mensaje de error claro.
+* **Health Check:** `GET /api/health` devuelve el estado del servidor, entorno activo, `uptime` y `timestamp` sin exponer credenciales ni secretos.
+* **Criterio sobre Endpoints Internos en Producción (`NODE_ENV=production`):**
+  * `/api/mocks` y `/api/logger-test` quedan **restringidos** (responden HTTP `403 Forbidden`) para evitar alteraciones en la base de datos o saturación de logs en producción.
+  * `/api/docs` (**Swagger UI**) permanece **habilitado** como portal de referencia técnica para integradores.
+
+### Ejecución con Docker
+El repositorio incluye un `Dockerfile` basado en `node:20-alpine` y un `.dockerignore` que excluye `node_modules`, `.env`, `.env.test`, `logs/`, `uploads/`, `tests/` y `.git`.
+
+1. **Construir la imagen:**
+   ```bash
+   docker build -t shipnow-api:1.0.0 .
+   ```
+2. **Ejecutar el contenedor inyectando variables de entorno:**
+   ```bash
+   docker run -d -p 8080:8080 --env-file .env --name shipnow-container shipnow-api:1.0.0
+   ```
+3. **Verificar el despliegue:**
+   * Health Check: `http://localhost:8080/api/health`
+   * Documentación Swagger: `http://localhost:8080/api/docs`

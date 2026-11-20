@@ -7,9 +7,12 @@ import { logger } from '../config/logger.config.js';
 const orderRepository = new OrderRepository();
 
 export class OrderService {
-  async getAllOrders() {
-    return await orderRepository.getAll();
-  }
+  async getAllOrders(filters = {}) {
+  const page = Math.max(1, Number(filters.page) || 1);
+  const limit = Math.min(50, Math.max(1, Number(filters.limit) || 10));
+  return await orderRepository.getAll({ page, limit, status: filters.status });
+}
+
   async getOrderById(id) {
     const order = await orderRepository.getById(id);
     if (!order) throw new CustomError(ERROR_DICTIONARY.ORDER_NOT_FOUND);

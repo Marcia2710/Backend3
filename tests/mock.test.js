@@ -7,7 +7,7 @@ describe('Módulo de Mocks (/api/mocks)', function () {
     const res = await request(app).get('/api/mocks/users?qty=3');
     expect(res.status).to.equal(200);
     expect(res.body).to.be.an('array').with.lengthOf(3);
-    expect(res.body[0]).to.include.all.keys('firstName', 'lastName', 'email', 'role');
+    expect(res.body).to.include.all.keys('firstName', 'lastName', 'email', 'role');
   });
 
   it('GET /api/mocks/users?qty=-5 debe devolver 400 con código INVALID_MOCK_QTY', async function () {
@@ -34,3 +34,4 @@ describe('Módulo de Mocks (/api/mocks)', function () {
     expect(res.body).to.have.property('code', 'INVALID_MOCK_QTY');
   });
 });
+
