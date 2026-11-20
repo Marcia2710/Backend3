@@ -5,3 +5,4 @@ docs-clase
 .env
 logs/
 .env.test
+uploads/

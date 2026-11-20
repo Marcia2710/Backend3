@@ -124,6 +124,33 @@ const swaggerSpec = {
         }
       }
     },
+    '/api/users/{id}/documents': {
+      post: {
+        tags: ['Users'],
+        summary: 'Subir un documento y asociarlo a un usuario',
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        requestBody: {
+          required: true,
+          content: {
+            'multipart/form-data': {
+              schema: {
+                type: 'object',
+                required: ['document'],
+                properties: {
+                  document: { type: 'string', format: 'binary', description: 'Archivo (JPG, PNG, WEBP o PDF - Máx 5MB)' },
+                  documentType: { type: 'string', enum: ['dni', 'licencia', 'comprobante_domicilio'], default: 'dni' }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          200: { description: 'Documento cargado y metadatos guardados', content: { 'application/json': { schema: { $ref: '#/components/schemas/SuccessResponse' } } } },
+          400: { description: 'Archivo faltante, formato inválido, tamaño superado o tipo de documento inválido', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+          404: { description: 'Usuario no encontrado', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        }
+      }
+    },
     '/api/orders': {
       get: {
         tags: ['Orders'],
@@ -173,6 +200,32 @@ const swaggerSpec = {
         responses: {
           200: { description: 'Estado actualizado' },
           400: { description: 'Estado inválido', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+          404: { description: 'Entrega no encontrada', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        }
+    }
+    },
+    '/api/deliveries/{id}/receipt': {
+      post: {
+        tags: ['Deliveries'],
+        summary: 'Subir comprobante de entrega (comprobante_entrega)',
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        requestBody: {
+          required: true,
+          content: {
+            'multipart/form-data': {
+              schema: {
+                type: 'object',
+                required: ['receipt'],
+                properties: {
+                  receipt: { type: 'string', format: 'binary', description: 'Archivo comprobante (JPG, PNG, WEBP o PDF - Máx 5MB)' }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          200: { description: 'Comprobante asociado a la entrega', content: { 'application/json': { schema: { $ref: '#/components/schemas/Delivery' } } } },
+          400: { description: 'Archivo faltante o formato inválido', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
           404: { description: 'Entrega no encontrada', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         }
       }

@@ -31,3 +31,10 @@ export const DELIVERY_STATUS = Object.freeze({
   DELIVERED: 'delivered',
   FAILED: 'failed'
 });
+
+export const DOCUMENT_TYPES = Object.freeze({
+  DNI: 'dni',
+  LICENSE: 'licencia',
+  ADDRESS_PROOF: 'comprobante_domicilio',
+  DELIVERY_RECEIPT: 'comprobante_entrega'
+});

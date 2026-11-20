@@ -150,7 +150,7 @@ Con el servidor en ejecución (`npm run dev`), realiza una petición `GET` al en
 Esto disparará un mensaje en cada uno de los 6 niveles configurados, permitiéndote verificar su salida inmediata en la consola y su persistencia en los archivos dentro de `logs/`.
 
 
-## 📖 Documentación Interactiva con Swagger (`/api/docs`)
+##  Documentación Interactiva con Swagger (`/api/docs`)
 
 La API cuenta con documentación técnica generada con **Swagger / OpenAPI 3.0** (`src/config/swagger.config.js`), separada de la lógica de rutas y accesible de forma interactiva.
 
@@ -169,7 +169,8 @@ La API cuenta con documentación técnica generada con **Swagger / OpenAPI 3.0**
 
 
 
-## 🧪 Testing Funcional Automatizado
+
+##  Testing Funcional Automatizado
 
 El proyecto cuenta con una suite de pruebas funcionales automatizadas para validar los flujos exitosos y el manejo centralizado de errores en los endpoints principales.
 
@@ -194,3 +195,30 @@ npm test
 ### Base de Datos y Variables de Entorno de Testing
 * **Base de datos separada:** Los tests utilizan una base de datos exclusiva para pruebas (ej. `shipnow_test`) con limpieza automática mediante hooks (`beforeEach` / `after`) para evitar modificar datos de desarrollo y garantizar que la suite sea repetible.
 * **Variables necesarias (`.env.test`):** Crea un archivo `.env.test` en la raíz del proyecto (ignorado en Git) con las mismas claves que `.env.example`, estableciendo `NODE_ENV=test` y apuntando `MONGODB_URI` a la base de datos de pruebas.
+
+
+
+
+## 📁 Carga de Archivos y Comprobantes (Multer)
+
+La API gestiona la carga de archivos mediante **Multer** (`src/config/multer.config.js`), almacenando los archivos organizados por categoría en `uploads/` (carpeta ignorada en Git) y persistiendo únicamente sus **metadatos** en MongoDB (`originalName`, `fileName`, `path`, `mimetype`, `size`, `documentType`, `uploadedAt`).
+
+### Endpoints de Carga (`multipart/form-data`)
+* **`POST /api/users/:id/documents`:** Asocia un documento al usuario.
+  * **Campo de archivo:** `document` (JPG, PNG, WEBP o PDF — Máximo `5MB`).
+  * **Campo adicional:** `documentType` (`dni`, `licencia` o `comprobante_domicilio`).
+* **`POST /api/deliveries/:id/receipt`:** Asocia un comprobante (`comprobante_entrega`) a una entrega existente.
+  * **Campo de archivo:** `receipt` (JPG, PNG, WEBP o PDF — Máximo `5MB`).
+
+
+
+## 📁 Carga de Archivos y Comprobantes (Multer)
+
+La API gestiona la carga de archivos mediante **Multer** (`src/config/multer.config.js`), almacenando los archivos organizados por categoría en `uploads/` (carpeta ignorada en Git) y persistiendo únicamente sus **metadatos** en MongoDB (`originalName`, `fileName`, `path`, `mimetype`, `size`, `documentType`, `uploadedAt`).
+
+### Endpoints de Carga (`multipart/form-data`)
+* **`POST /api/users/:id/documents`:** Asocia un documento al usuario.
+  * **Campo de archivo:** `document` (JPG, PNG, WEBP o PDF — Máximo `5MB`).
+  * **Campo adicional:** `documentType` (`dni`, `licencia` o `comprobante_domicilio`).
+* **`POST /api/deliveries/:id/receipt`:** Asocia un comprobante (`comprobante_entrega`) a una entrega existente.
+  * **Campo de archivo:** `receipt` (JPG, PNG, WEBP o PDF — Máximo `5MB`).

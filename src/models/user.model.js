@@ -28,15 +28,21 @@ const userSchema = new mongoose.Schema({
     enum: Object.values(ROLES),
     default: ROLES.USER
   },
-  documents: {
+   documents: {
     type: [
       {
-        name: { type: String },
-        reference: { type: String }
+        originalName: { type: String, required: true },
+        fileName: { type: String, required: true },
+        path: { type: String, required: true },
+        mimetype: { type: String, required: true },
+        size: { type: Number, required: true },
+        documentType: { type: String, default: 'general' },
+        uploadedAt: { type: Date, default: Date.now }
       }
     ],
     default: []
   }
+
 }, {
   timestamps: true
 });

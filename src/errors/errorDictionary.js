@@ -77,6 +77,34 @@ export const ERROR_DICTIONARY = Object.freeze({
     code: 'INVALID_STATUS_TRANSITION',
     message: 'El estado proporcionado no es válido para esta entidad.',
     statusCode: 400
+  },
+
+  // Errores de Dominio: Carga de Archivos (Multer)
+  FILE_REQUIRED: {
+    code: 'FILE_REQUIRED',
+    message: 'Debes adjuntar un archivo en la petición.',
+    statusCode: 400
+  },
+  INVALID_FILE_TYPE: {
+    code: 'INVALID_FILE_TYPE',
+    message: 'Formato de archivo no permitido. Solo se aceptan imágenes (JPG, PNG, WEBP) o documentos PDF.',
+    statusCode: 400
+  },
+  FILE_TOO_LARGE: {
+    code: 'FILE_TOO_LARGE',
+    message: 'El archivo supera el tamaño máximo permitido de 5MB.',
+    statusCode: 400
+  },
+  INVALID_DOCUMENT_TYPE: {
+    code: 'INVALID_DOCUMENT_TYPE',
+    message: 'El tipo de documento especificado no es válido.',
+    statusCode: 400
+  },
+  FILE_UPLOAD_ERROR: {
+    code: 'FILE_UPLOAD_ERROR',
+    message: 'Error al procesar o guardar el archivo cargado.',
+    statusCode: 400
   }
+
 
 });

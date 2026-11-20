@@ -41,6 +41,25 @@ export const errorHandler = (err, req, res, next) => {
       message: err.message
     });
   }
+    // 4. Errores nativos de Multer (tamaño excedido o campo inesperado)
+  if (err.name === 'MulterError') {
+    const errorType = err.code === 'LIMIT_FILE_SIZE'
+      ? ERROR_DICTIONARY.FILE_TOO_LARGE
+      : ERROR_DICTIONARY.FILE_UPLOAD_ERROR;
+
+    const customMsg = err.code === 'LIMIT_UNEXPECTED_FILE'
+      ? `El nombre del campo '${err.field}' no es válido para la carga.`
+      : errorType.message;
+
+    logger.warning(`${requestInfo} (${errorType.code}) ${customMsg}`);
+
+    return res.status(errorType.statusCode).json({
+      status: 'error',
+      code: errorType.code,
+      message: customMsg
+    });
+  }
+
 
   // 4. Errores inesperados del servidor (se persisten en logs/error-YYYY-MM-DD.log)
   logger.error(`${requestInfo} Error inesperado no controlado: ${err.message}\n${err.stack}`);
